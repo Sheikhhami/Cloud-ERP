@@ -121,7 +121,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [addNotification]);
 
   const askAI = async (prompt: string, mode: 'chat' | 'search' | 'maps' | 'complex'): Promise<AIChatMessage> => {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) {
+      return { role: 'model', content: 'Configuration Error: API Key not found in Netlify environment variables.' };
+    }
+
+    const ai = new GoogleGenAI({ apiKey });
     let model = 'gemini-3-flash-preview'; 
     let config: any = {};
 
@@ -173,12 +178,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
     } catch (error) {
       console.error('AI Error:', error);
-      return { role: 'model', content: 'System Error: Failed to reach the AI engine.' };
+      return { role: 'model', content: 'System Error: Failed to reach the AI engine. Please check your API key settings.' };
     }
   };
 
   const editProductImage = async (productId: string, prompt: string, base64Image: string): Promise<string> => {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) throw new Error("API Key missing");
+    
+    const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
       contents: { parts: [{ inlineData: { data: base64Image.split(',')[1], mimeType: 'image/png' } }, { text: prompt }] }
