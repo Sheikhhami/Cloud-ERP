@@ -1,10 +1,11 @@
+
 {
   "name": "clouderp-pos",
   "version": "1.0.0",
   "description": "Professional Cloud-Based ERP & POS System",
   "scripts": {
     "start": "serve .",
-    "build": "mkdir -p dist && cp -rv index.html index.tsx metadata.json App.tsx types.ts constants.tsx components pages context dist/",
+    "build": "rm -rf dist && mkdir -p dist && cp -rv index.html index.tsx metadata.json App.tsx types.ts constants.tsx AppContext.tsx Sidebar.tsx Header.tsx AIChatBot.tsx Dashboard.tsx POS.tsx Products.tsx Finance.tsx Reports.tsx Customers.tsx Vendors.tsx Employees.tsx Projects.tsx Manufacturing.tsx Settings.tsx Purchases.tsx dist/",
     "vercel-build": "npm run build"
   },
   "dependencies": {

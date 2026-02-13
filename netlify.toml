@@ -1,7 +1,7 @@
 
 [build]
-  publish = "."
-  command = "echo 'Static Deployment Mode: No build step required for ESM direct loading'"
+  publish = "dist"
+  command = "npm run build"
 
 [[redirects]]
   from = "/*"

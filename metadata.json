@@ -1,5 +1,5 @@
 {
-  "name": "2nd app",
+  "name": "CloudERP",
   "description": "A comprehensive, high-performance Cloud-based POS and ERP system for retail and business management with smart insights.",
   "requestFramePermissions": [
     "camera"

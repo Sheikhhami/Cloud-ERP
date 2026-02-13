@@ -6,11 +6,11 @@ import {
   Employee, Project, User, UserRole, Vendor, 
   PurchaseRecord, AIChatMessage, GroundingSource,
   AttendanceRecord, ManufacturingEntry, ManufacturingClaim
-} from '../types';
+} from './types';
 import { 
   INITIAL_PRODUCTS, INITIAL_CUSTOMERS, INITIAL_EXPENSE_CATEGORIES, 
   INITIAL_VENDORS, INITIAL_EMPLOYEES, INITIAL_PROJECTS 
-} from '../constants';
+} from './constants';
 
 interface AppContextType {
   user: User | null;
@@ -48,8 +48,6 @@ interface AppContextType {
   recordClaim: (claim: Omit<ManufacturingClaim, 'id' | 'status'>) => void;
   resolveClaim: (claimId: string) => void;
   updateUser: (data: Partial<User>) => void;
-  
-  // New Utilities
   exportToCSV: (data: any[], filename: string) => void;
   askAI: (prompt: string, mode: 'chat' | 'search' | 'maps' | 'complex') => Promise<AIChatMessage>;
   editProductImage: (productId: string, prompt: string, base64Image: string) => Promise<string>;
@@ -127,7 +125,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     let model = 'gemini-3-flash-preview'; 
     let config: any = {};
 
-    // Create a data snapshot for the AI to have context
     const totalRevenue = sales.reduce((sum, s) => sum + s.total, 0);
     const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
     const totalStock = products.reduce((sum, p) => sum + p.stock, 0);
@@ -149,34 +146,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     if (mode === 'complex') {
       model = 'gemini-3-pro-preview';
-      config = { 
-        systemInstruction,
-        thinkingConfig: { thinkingBudget: 32768 } 
-      };
+      config = { systemInstruction, thinkingConfig: { thinkingBudget: 32768 } };
     } else if (mode === 'search') {
       model = 'gemini-3-flash-preview';
-      config = { 
-        systemInstruction,
-        tools: [{ googleSearch: {} }] 
-      };
+      config = { systemInstruction, tools: [{ googleSearch: {} }] };
     } else if (mode === 'maps') {
       model = 'gemini-2.5-flash';
-      config = { 
-        systemInstruction,
-        tools: [{ googleMaps: {} }],
-        toolConfig: { retrievalConfig: { latLng: { latitude: 40.7128, longitude: -74.0060 } } } 
-      };
+      config = { systemInstruction, tools: [{ googleMaps: {} }], toolConfig: { retrievalConfig: { latLng: { latitude: 40.7128, longitude: -74.0060 } } } };
     } else {
       config = { systemInstruction };
     }
 
     try {
-      const response = await ai.models.generateContent({
-        model,
-        contents: prompt,
-        config
-      });
-
+      const response = await ai.models.generateContent({ model, contents: prompt, config });
       const sources: GroundingSource[] = [];
       const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
       chunks.forEach((chunk: any) => {
@@ -191,7 +173,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
     } catch (error) {
       console.error('AI Error:', error);
-      return { role: 'model', content: 'System Error: Failed to reach the AI engine. Please verify your connection or API key.' };
+      return { role: 'model', content: 'System Error: Failed to reach the AI engine.' };
     }
   };
 
@@ -199,19 +181,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
-      contents: {
-        parts: [
-          { inlineData: { data: base64Image.split(',')[1], mimeType: 'image/png' } },
-          { text: prompt }
-        ]
-      }
+      contents: { parts: [{ inlineData: { data: base64Image.split(',')[1], mimeType: 'image/png' } }, { text: prompt }] }
     });
 
     let newUrl = '';
     for (const part of response.candidates[0].content.parts) {
-      if (part.inlineData) {
-        newUrl = `data:image/png;base64,${part.inlineData.data}`;
-      }
+      if (part.inlineData) newUrl = `data:image/png;base64,${part.inlineData.data}`;
     }
     
     if (newUrl) {
@@ -248,12 +223,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           credit: 0,
           balance: v.remainingPayable - amount
         };
-        return { 
-          ...v, 
-          remainingPayable: v.remainingPayable - amount, 
-          totalPaid: v.totalPaid + amount,
-          ledger: [...v.ledger, newEntry]
-        };
+        return { ...v, remainingPayable: v.remainingPayable - amount, totalPaid: v.totalPaid + amount, ledger: [...v.ledger, newEntry] };
       }
       return v;
     }));
@@ -261,13 +231,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const paySalary = useCallback((employeeId: string, amount: number, month: string, method: string) => {
     setEmployees(prev => prev.map(e => e.id === employeeId ? { ...e, salaryHistory: [{ id: `SAL-${Date.now()}`, date: new Date().toISOString(), month, amount, status: 'Paid', paymentMethod: method }, ...e.salaryHistory] } : e));
-    setExpenses(prev => [...prev, {
-      id: `EXP-SAL-${Date.now()}`,
-      date: new Date().toISOString().split('T')[0],
-      categoryId: '3', // Salaries category
-      amount,
-      description: `Salary Payment - ${month}`
-    }]);
+    setExpenses(prev => [...prev, { id: `EXP-SAL-${Date.now()}`, date: new Date().toISOString().split('T')[0], categoryId: '3', amount, description: `Salary Payment - ${month}` }]);
   }, []);
 
   const logAttendance = useCallback((employeeId: string, status: AttendanceRecord['status']) => {
@@ -277,13 +241,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const performManufacturing = useCallback((entry: any) => {
     const id = `MFG-${Date.now()}`;
     setManufacturingEntries(prev => [...prev, { ...entry, id, status: 'Completed' }]);
-    
     setProducts(prev => {
       const updated = prev.map(p => {
         if (p.id === entry.rawProductId) return { ...p, stock: p.stock - entry.rawQuantity };
         return p;
       });
-      
       const existingFinished = updated.find(p => p.name === entry.finishedProductName);
       if (existingFinished) {
         return updated.map(p => {
@@ -298,17 +260,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         });
       } else {
         const newProd: Product = {
-          id: entry.finishedProductId,
-          name: entry.finishedProductName,
-          sku: `MFG-${entry.finishedProductName.slice(0,3).toUpperCase()}`,
-          barcode: `MFG-${Date.now()}`,
-          category: 'Manufacturing Output',
-          purchasePrice: entry.finishedUnitCost,
-          averageCost: entry.finishedUnitCost,
-          salePrice: Math.round(entry.finishedUnitCost * 1.5 * 100) / 100,
-          stock: entry.finishedQuantity,
-          lowStockAlert: 5,
-          history: []
+          id: entry.finishedProductId, name: entry.finishedProductName, sku: `MFG-${entry.finishedProductName.slice(0,3).toUpperCase()}`,
+          barcode: `MFG-${Date.now()}`, category: 'Manufacturing Output', purchasePrice: entry.finishedUnitCost,
+          averageCost: entry.finishedUnitCost, salePrice: Math.round(entry.finishedUnitCost * 1.5 * 100) / 100,
+          stock: entry.finishedQuantity, lowStockAlert: 5, history: []
         };
         return [newProd, ...updated];
       }
