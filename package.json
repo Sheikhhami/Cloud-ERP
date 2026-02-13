@@ -5,7 +5,7 @@
   "description": "Professional Cloud-Based ERP & POS System",
   "scripts": {
     "start": "serve .",
-    "build": "rm -rf dist && mkdir -p dist && cp -rv index.html index.tsx metadata.json App.tsx types.ts constants.tsx AppContext.tsx Sidebar.tsx Header.tsx AIChatBot.tsx Dashboard.tsx POS.tsx Products.tsx Finance.tsx Reports.tsx Customers.tsx Vendors.tsx Employees.tsx Projects.tsx Manufacturing.tsx Settings.tsx Purchases.tsx dist/",
+    "build": "rm -rf dist && mkdir -p dist && cp -rv *.html *.tsx *.ts *.json *.css dist/ 2>/dev/null || :",
     "vercel-build": "npm run build"
   },
   "dependencies": {

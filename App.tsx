@@ -23,6 +23,7 @@ interface ErrorBoundaryProps {
 
 interface ErrorBoundaryState {
   hasError: boolean;
+  error?: Error;
 }
 
 class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
@@ -30,21 +31,44 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     hasError: false
   };
 
-  public static getDerivedStateFromError(_: Error): ErrorBoundaryState {
-    return { hasError: true };
+  public static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("Uncaught error:", error, errorInfo);
+    console.error("App Crash Logged:", error, errorInfo);
   }
 
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="h-screen flex flex-col items-center justify-center p-6 text-center">
-          <h1 className="text-3xl font-black text-slate-800">System Interruption</h1>
-          <p className="text-slate-500 mt-2">The application encountered an unexpected error. Please refresh.</p>
-          <button onClick={() => window.location.reload()} className="mt-6 px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold">Restart System</button>
+        <div className="h-screen w-full flex flex-col items-center justify-center p-6 text-center bg-slate-50">
+          <div className="bg-white p-10 rounded-[2.5rem] shadow-2xl border border-slate-200 max-w-lg">
+            <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+            </div>
+            <h1 className="text-2xl font-black text-slate-800 tracking-tight">Engine Interruption</h1>
+            <p className="text-slate-500 mt-3 mb-8">The cloud engine encountered a runtime exception. Your data is safe, but the UI needs a restart.</p>
+            <div className="flex flex-col gap-3">
+              <button 
+                onClick={() => window.location.reload()} 
+                className="w-full px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all"
+              >
+                Restart Session
+              </button>
+              <button 
+                onClick={() => window.location.href = '/'} 
+                className="w-full px-8 py-4 bg-slate-100 text-slate-600 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-slate-200 transition-all"
+              >
+                Return to Home
+              </button>
+            </div>
+            {this.state.error && (
+              <pre className="mt-8 p-4 bg-slate-900 text-rose-400 rounded-xl text-[10px] text-left overflow-auto max-h-32 scrollbar-hide">
+                {this.state.error.message}
+              </pre>
+            )}
+          </div>
         </div>
       );
     }
@@ -57,7 +81,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+      <div className="min-h-screen w-full bg-slate-950 flex items-center justify-center p-4">
         <div className="bg-white p-10 rounded-[2.5rem] shadow-2xl w-full max-w-md space-y-8 animate-in zoom-in duration-500">
           <div className="text-center space-y-2">
             <h1 className="text-4xl font-black text-slate-900 tracking-tighter">CloudERP</h1>
@@ -80,11 +104,11 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   }
 
   return (
-    <div className="flex h-screen bg-slate-50 overflow-hidden">
+    <div className="flex h-screen w-full bg-slate-50 overflow-hidden">
       <Sidebar />
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         <Header />
-        <main className="flex-1 overflow-y-auto p-8 scrollbar-hide relative">
+        <main className="flex-1 overflow-y-auto p-8 scrollbar-hide relative z-10">
           {children}
           <AIChatBot />
         </main>
@@ -111,7 +135,7 @@ const App: React.FC = () => {
               <Route path="/employees" element={<Employees />} />
               <Route path="/projects" element={<Projects />} />
               <Route path="/settings" element={<Settings />} />
-              <Route path="*" element={<Navigate to="/" />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Layout>
         </HashRouter>
