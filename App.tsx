@@ -25,14 +25,15 @@ interface ErrorBoundaryState {
   hasError: boolean;
 }
 
-// Fix: Use imported Component directly with generics to ensure state and props are correctly typed and inherited
-class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+// Fix: Use React.Component with explicit generic types and declare state to ensure it is correctly typed and inherited properties are recognized by TypeScript
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  // Fix: Explicitly declare state as a class property to resolve existence errors in TypeScript
+  public state: ErrorBoundaryState = {
+    hasError: false
+  };
+
   constructor(props: ErrorBoundaryProps) {
     super(props);
-    // Fix: state is inherited from Component when generic parameters are provided
-    this.state = {
-      hasError: false
-    };
   }
 
   public static getDerivedStateFromError(_: Error): ErrorBoundaryState {
@@ -44,7 +45,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   }
 
   public render() {
-    // Fix: state is correctly recognized as inherited from Component
+    // Fix: Access state via this.state which is now correctly defined on the class type
     if (this.state.hasError) {
       return (
         <div className="h-screen flex flex-col items-center justify-center p-6 text-center">
@@ -55,7 +56,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
       );
     }
 
-    // Fix: props is correctly recognized as inherited from Component
+    // Fix: Access props via this.props which is correctly inherited from React.Component
     return this.props.children;
   }
 }
@@ -66,7 +67,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   if (!user) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-        <div className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md space-y-6">
+        <div className="bg-white p-8 rounded-2xl shadow-2xl w-full max-md space-y-6">
           <div className="text-center">
             <h1 className="text-3xl font-black text-slate-900 tracking-tight">CloudERP</h1>
             <p className="text-slate-500 mt-2">Sign in to your business hub</p>

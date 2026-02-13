@@ -1,11 +1,11 @@
-
 {
   "name": "clouderp-pos",
   "version": "1.0.0",
   "description": "Professional Cloud-Based ERP & POS System",
   "scripts": {
     "start": "serve .",
-    "build": "echo 'Optimization complete: Static assets ready for Netlify Edge hosting'"
+    "build": "mkdir -p dist && cp -rv index.html index.tsx metadata.json App.tsx types.ts constants.tsx components pages context dist/",
+    "vercel-build": "npm run build"
   },
   "dependencies": {
     "serve": "^14.2.4"
