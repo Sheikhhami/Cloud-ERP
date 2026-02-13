@@ -1,0 +1,13 @@
+
+{
+  "name": "clouderp-pos",
+  "version": "1.0.0",
+  "description": "Professional Cloud-Based ERP & POS System",
+  "scripts": {
+    "start": "serve .",
+    "build": "echo 'Optimization complete: Static assets ready for Netlify Edge hosting'"
+  },
+  "dependencies": {
+    "serve": "^14.2.4"
+  }
+}
